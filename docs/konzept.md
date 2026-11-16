@@ -116,7 +116,7 @@ sequenceDiagram
     participant X as Xray Cloud
 
     Note over N,X: Einmalig: Zugang einrichten
-    N->>UI: Einstellungen: Jira-API-Token hinterlegen
+    N->>UI: Einstellungen: Jira-API-Token + Xray-API-Key hinterlegen
     UI->>BFF: Token speichern
     BFF->>J: GET /rest/api/3/myself
     J-->>BFF: Nutzer (Name, Account-ID)
@@ -139,7 +139,7 @@ sequenceDiagram
     BFF-->>UI: Übersicht (Tests, Status, Schritt 1 / Datei-Link)
 ```
 
-1. **Zugang einrichten (einmalig):** Der Nutzer hinterlegt in den Einstellungen sein Jira-API-Token. Das Cockpit prüft es sofort und zeigt an, mit welchem Konto er angemeldet ist.
+1. **Zugang einrichten (einmalig):** Der Nutzer hinterlegt in den Einstellungen sein Jira-API-Token und seinen persönlichen Xray-API-Key. Das Cockpit prüft beides sofort und zeigt an, mit welchem Konto er angemeldet ist.
 2. **Einstieg:** Die Startseite zeigt die Test Executions und Test Plans, die der Nutzer sehen darf. Er kann sie nach Projekt, Key, Fix Version oder Text filtern. Alternativ fügt er einen Key oder einen kompletten Jira-Link ein; das Cockpit liest den Key dann aus dem Link heraus.
 3. **Test Plan → Executions:** Wählt der Nutzer einen Test Plan, zeigt das Cockpit die zugehörigen Test Executions zur Auswahl.
 4. **Übersicht einer Test Execution:**
@@ -154,7 +154,7 @@ sequenceDiagram
 
 | Seite | Route | Inhalt |
 |---|---|---|
-| Einstellungen | `/einstellungen` | Jira-API-Token hinterlegen, prüfen, löschen; angemeldeter Nutzer; Ablaufdatum des Tokens |
+| Einstellungen | `/einstellungen` | E-Mail + Jira-API-Token sowie Xray Client ID + Client Secret hinterlegen, prüfen, löschen; angemeldeter Nutzer; Ablaufdatum des Tokens |
 | Start / Auswahl | `/` | Suche und Liste der Test Executions und Test Plans; zuletzt geöffnete Einträge |
 | Test Plan | `/plans/:key` | Zugehörige Test Executions |
 | Execution-Übersicht | `/executions/:key` | Kopfbereich und Tabelle der Test Runs |
@@ -202,6 +202,7 @@ Die Xray Cloud API akzeptiert das Jira-API-Token **nicht**. Sie braucht einen ei
 
 - Mit dem Key holt sich das Backend ein Zugriffstoken (`POST https://xray.cloud.getxray.app/api/v2/authenticate`) und fragt dann die GraphQL-API ab (`https://xray.cloud.getxray.app/api/v2/graphql`).
 - API-Keys legt ein **Jira-Administrator** in den Xray-Einstellungen an und ordnet sie jeweils einem Jira-Nutzer zu. Der Key arbeitet mit den Rechten dieses Nutzers ❓ (gegen die eigene Instanz prüfen).
+- **Stand:** Im Testsystem sind persönliche Xray-API-Keys für die ersten Nutzer angelegt. Das Client Secret wird nur beim Anlegen einmal angezeigt und muss sicher verwahrt werden (z. B. Passwort-Manager); es gehört weder ins Repository noch in Chats oder Tickets.
 
 Für das Cockpit gibt es damit drei Varianten:
 
@@ -211,7 +212,7 @@ Für das Cockpit gibt es damit drei Varianten:
 | **B** | Jeder Nutzer hinterlegt nur sein Jira-API-Token. Xray wird über **einen technischen API-Key** im Backend abgefragt. Das BFF prüft vorher mit dem Token des Nutzers, ob er den Vorgang sehen darf. | Nutzer pflegt nur einen Zugang; einfache Einrichtung | Die Rechteprüfung im BFF muss konsequent sein; der technische Nutzer braucht Leserechte auf alle betroffenen Projekte |
 | **C** | Anmeldung über **OAuth 2.0** mit dem Atlassian-Konto statt API-Token; Xray wie A oder B | Kein Token kopieren; Zugriff zentral widerrufbar | App-Registrierung in der Atlassian Developer Console nötig; mehr Aufwand |
 
-**Empfehlung für den Start: Variante B.** Sie entspricht der Idee „ein Zugang pro Nutzer in den Einstellungen“. Die Sichtbarkeit steuert weiterhin Jira: Das BFF fragt Xray nur zu Vorgängen ab, die der Nutzer vorher mit seinem eigenen Token abrufen konnte. Variante C kann später folgen, wenn mehr Nutzer dazukommen ❓.
+**Empfehlung für den Prototyp: Variante A.** Da bereits persönliche Xray-API-Keys angelegt sind, hinterlegt jeder Nutzer seine eigenen Zugänge in den Einstellungen. Die Rechte prüfen dann Jira und Xray selbst; das BFF braucht keine eigene Rechtelogik. Bei vielen Nutzern wird das Anlegen der Keys aufwendig – dann auf Variante B (technischer Key) oder C (OAuth) wechseln ❓.
 
 ### 5.4 Umgang mit dem Token
 
@@ -219,7 +220,8 @@ Für das Cockpit gibt es damit drei Varianten:
 - Das Token wird **nur im Backend** gespeichert: verschlüsselt und an den angemeldeten Nutzer gebunden, oder im MVP nur für die Dauer der Sitzung (httpOnly-Cookie, Token in der Server-Session) ❓.
 - Das Token kommt **nicht** in den `localStorage` des Browsers, wird nie protokolliert und nie wieder an die Oberfläche zurückgegeben (nur maskiert angezeigt).
 - In den Einstellungen kann der Nutzer das Token jederzeit löschen oder ersetzen.
-- Der technische Xray-API-Key (Variante B) liegt im Secret Store des Backends, nie im Frontend.
+- Für Client ID und Client Secret von Xray gilt dasselbe wie für das Jira-API-Token.
+- Ein technischer Xray-API-Key (nur Variante B) läge im Secret Store des Backends, nie im Frontend.
 
 ### 5.5 Benötigte API-Aufrufe (Phase 1)
 
@@ -461,7 +463,7 @@ interface TestCockpitItem {
 
 ## 12. Offene Fragen
 
-1. ~~Wird Xray Cloud oder Server/DC eingesetzt?~~ → **Xray Cloud** (siehe Kapitel 5). Noch offen: Welche Jira-Projekte außer `TGTM2`? Wer legt den Xray-API-Key an? Variante A, B oder C für den Zugang?
+1. ~~Wird Xray Cloud oder Server/DC eingesetzt?~~ → **Xray Cloud** (siehe Kapitel 5). Noch offen: Welche Jira-Projekte außer `TGTM2`? Persönliche Xray-API-Keys sind angelegt; für den Prototyp Variante A. Ab wie vielen Nutzern wechseln wir auf B oder C?
 2. **Wo genau** steht der Datei-Link im ersten Testschritt? Gibt es ein festes Format? Gilt der Stand im Test Run oder im Test?
 3. Welches **EDI-Format** wird verwendet? Gibt es eine Spezifikation? In welches **Feld** kommt die Referenznummer, und wie ist sie aufgebaut?
 4. Welche **SharePoint-Site(s)** sind betroffen? Wer genehmigt die App-Registrierung (Kunden-IT)?
