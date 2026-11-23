@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Cockpit – Mockup</title>
+<style>
+  /* =========================================================
+     Design-Tokens – Farben angelehnt an die ja!-Milchpackung
+     (Weiß, kräftiges Rot als Akzent, Milchblau für Flächen).
+     Für einen echten Styleguide nur diese Werte anpassen.
+     ========================================================= */
+  :root {
+    --rot: #e30613;          /* Akzent: Buttons, aktive Navigation */
+    --rot-dunkel: #b8000f;
+    --rot-hell: #fde8ea;
+    --blau: #0a4f9c;         /* Milchblau: Überschriften, Links */
+    --blau-hell: #e6f1fb;    /* Flächen, Tabellenkopf */
+    --blau-mittel: #9cc7ec;
+    --weiss: #ffffff;
+    --hintergrund: #f5f9fd;
+    --text: #1d2b3a;
+    --text-leise: #5b6b7c;
+    --linie: #d9e4ef;
+
+    --pass: #2e8b3d;  --pass-bg: #e5f4e7;
+    --fail: #e30613;  --fail-bg: #fde8ea;
+    --todo: #5b6b7c;  --todo-bg: #edf1f5;
+    --exec: #0a4f9c;  --exec-bg: #e6f1fb;
+    --warn: #b56a00;  --warn-bg: #fff3dc;
+
+    --radius: 10px;
+    --schatten: 0 1px 3px rgba(10, 79, 156, .08), 0 4px 14px rgba(10, 79, 156, .06);
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); color: var(--text); background: var(--hintergrund); font-size: 14px; }
+  a { color: var(--blau); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: var(--blau); }
+  h2 { font-size: 16px; margin: 0 0 12px; color: var(--blau); }
+
+  /* Kopfleiste */
+  header.top {
+    background: var(--weiss); border-bottom: 4px solid var(--rot);
+    display: flex; align-items: center; gap: 24px; padding: 0 24px; height: 60px;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .marke { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--blau); }
+  .marke .punkt {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--rot); color: #fff;
+    display: grid; place-items: center; font-size: 15px; font-weight: 800;
+  }
+  nav.haupt { display: flex; gap: 4px; flex: 1; }
+  nav.haupt a { padding: 8px 14px; border-radius: 999px; color: var(--text); font-weight: 500; }
+  nav.haupt a:hover { background: var(--blau-hell); text-decoration: none; }
+  nav.haupt a.aktiv { background: var(--rot); color: #fff; }
+  .nutzer { display: flex; align-items: center; gap: 8px; color: var(--text-leise); font-size: 13px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--blau); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+
+  /* Milchwelle unter dem Kopf */
+  .welle { height: 26px; background: var(--blau-hell);
+    -webkit-mask: radial-gradient(18px 12px at 18px 0, #000 98%, transparent) 0 0/36px 26px repeat-x;
+            mask: radial-gradient(18px 12px at 18px 0, #000 98%, transparent) 0 0/36px 26px repeat-x; }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 48px; }
+  .karte { background: var(--weiss); border-radius: var(--radius); box-shadow: var(--schatten); padding: 20px; margin-bottom: 18px; }
+  .leise { color: var(--text-leise); }
+  .brot { font-size: 13px; color: var(--text-leise); margin: 10px 0 14px; }
+  .brot a { color: var(--text-leise); }
+
+  /* Formulare & Buttons */
+  input, select { font: inherit; padding: 9px 12px; border: 1px solid var(--linie); border-radius: 8px; background: #fff; color: var(--text); }
+  input:focus, select:focus { outline: 2px solid var(--blau-mittel); border-color: var(--blau); }
+  .btn { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 9px 18px; cursor: pointer; background: var(--rot); color: #fff; }
+  .btn:hover { background: var(--rot-dunkel); }
+  .btn.zweit { background: var(--weiss); color: var(--blau); border: 1px solid var(--blau-mittel); }
+  .btn.zweit:hover { background: var(--blau-hell); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .zeile { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  /* Tabellen */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--blau); background: var(--blau-hell); padding: 10px 12px; }
+  th:first-child { border-top-left-radius: 8px; } th:last-child { border-top-right-radius: 8px; }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--linie); vertical-align: middle; }
+  tr.klick { cursor: pointer; }
+  tr.klick:hover td { background: #fafcff; }
+  .mono { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+  td.mono:first-child { white-space: nowrap; }
+
+  /* Status-Badges */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+  .b-PASS { color: var(--pass); background: var(--pass-bg); }
+  .b-FAIL { color: var(--fail); background: var(--fail-bg); }
+  .b-TODO { color: var(--todo); background: var(--todo-bg); }
+  .b-EXECUTING { color: var(--exec); background: var(--exec-bg); }
+  .datei { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+  .d-found { color: var(--pass); } .d-not-found { color: var(--fail); } .d-missing-link { color: var(--warn); }
+
+  /* Kennzahlen */
+  .kacheln { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+  .kachel { background: var(--hintergrund); border-radius: 8px; padding: 12px 14px; border-left: 4px solid var(--blau-mittel); }
+  .kachel .zahl { font-size: 24px; font-weight: 700; color: var(--blau); }
+  .kachel.rot { border-left-color: var(--rot); } .kachel.rot .zahl { color: var(--rot); }
+  .kachel.gruen { border-left-color: var(--pass); } .kachel.gruen .zahl { color: var(--pass); }
+  .kachel.gelb { border-left-color: var(--warn); } .kachel.gelb .zahl { color: var(--warn); }
+  .balken { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--todo-bg); margin-top: 14px; }
+  .balken span { display: block; height: 100%; }
+  .legende { display: flex; gap: 16px; font-size: 12px; color: var(--text-leise); margin-top: 8px; flex-wrap: wrap; }
+  .legende i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+
+  .kopf { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 24px; margin-top: 14px; font-size: 13px; }
+  .meta b { display: block; font-size: 11px; color: var(--text-leise); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; margin-bottom: 2px; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--linie); background: #fff; padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 13px; }
+  .chip.an { background: var(--blau); border-color: var(--blau); color: #fff; }
+
+  .hinweis { background: var(--blau-hell); border-left: 4px solid var(--blau); padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+  .hinweis.warn { background: var(--warn-bg); border-left-color: var(--warn); }
+  .ok { color: var(--pass); font-weight: 600; }
+  .formgrid { display: grid; grid-template-columns: 180px 1fr; gap: 12px 16px; align-items: center; max-width: 640px; }
+  .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 800px) { .zwei { grid-template-columns: 1fr; } .formgrid { grid-template-columns: 1fr; } nav.haupt a { padding: 8px 8px; } }
+
+  .mockup-band { position: fixed; bottom: 12px; right: 12px; background: var(--blau); color: #fff; font-size: 12px; padding: 6px 12px; border-radius: 999px; opacity: .85; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="marke"><div class="punkt">TC</div>Test Cockpit</div>
+  <nav class="haupt">
+    <a href="#/" data-nav="start">Start</a>
+    <a href="#/plans/TGTM2-1" data-nav="plan">Test Plans</a>
+    <a href="#/executions/TGTM2-6" data-nav="exec">Executions</a>
+    <a href="#/einstellungen" data-nav="einst">Einstellungen</a>
+  </nav>
+  <div class="nutzer"><span>Angemeldet als <b>Jakob B.</b></span><div class="avatar">JB</div></div>
+</header>
+<div class="welle"></div>
+
+<main id="app"></main>
+<div class="mockup-band">Mockup · Beispieldaten</div>
+
+<script>
+/* ---------------- Beispieldaten (Phase 1, nur lesend) ---------------- */
+const SP = 'https://kunde.sharepoint.com/sites/EDI-Test/Testdateien/';
+const plans = [
+  { key: 'TGTM2-1', summary: 'Release 2026.12 – EDI Abrechnung', fixVersion: '2026.12', executions: ['TGTM2-6', 'TGTM2-7'] },
+  { key: 'TGTM2-2', summary: 'Regression Lieferavis (DESADV)', fixVersion: '2026.12', executions: ['TGTM2-8'] },
+];
+const executions = {
+  'TGTM2-6': { summary: 'Testlauf INVOIC Abrechnung – Sprint 47', status: 'In Arbeit', plan: 'TGTM2-1', fixVersion: '2026.12', env: 'SAP Q01 / Mandant 100', updated: '20.11.2026' },
+  'TGTM2-7': { summary: 'Testlauf INVOIC Gutschriften', status: 'Offen', plan: 'TGTM2-1', fixVersion: '2026.12', env: 'SAP Q01 / Mandant 100', updated: '18.11.2026' },
+  'TGTM2-8': { summary: 'Regression DESADV Lieferavis', status: 'Erledigt', plan: 'TGTM2-2', fixVersion: '2026.12', env: 'SAP Q02 / Mandant 200', updated: '12.11.2026' },
+};
+const runs = [
+  { test: 'TGTM2-11', summary: 'Rechnung Standardfall, 1 Position', status: 'PASS', file: 'INVOIC_standard_1pos.edi', check: 'found', steps: 4, by: 'H. Lill', at: '20.11.2026 10:14' },
+  { test: 'TGTM2-12', summary: 'Rechnung mit 25 Positionen', status: 'PASS', file: 'INVOIC_25pos.edi', check: 'found', steps: 4, by: 'H. Lill', at: '20.11.2026 10:31' },
+  { test: 'TGTM2-13', summary: 'Rechnung mit Rabattstaffel', status: 'FAIL', file: 'INVOIC_rabatt.edi', check: 'found', steps: 5, by: 'J. Braun', at: '20.11.2026 11:02' },
+  { test: 'TGTM2-14', summary: 'Rechnung ohne Steuernummer (Fehlerfall)', status: 'EXECUTING', file: 'INVOIC_ohne_ustid.edi', check: 'found', steps: 4, by: 'J. Braun', at: '21.11.2026 08:45' },
+  { test: 'TGTM2-15', summary: 'Rechnung Fremdwährung CHF', status: 'TODO', file: 'INVOIC_chf.edi', check: 'not-found', steps: 4, by: '–', at: '–' },
+  { test: 'TGTM2-16', summary: 'Sammelrechnung mehrere Lieferscheine', status: 'TODO', file: null, check: 'missing-link', steps: 6, by: '–', at: '–' },
+  { test: 'TGTM2-17', summary: 'Rechnung Milchgeld Erzeuger', status: 'TODO', file: 'INVOIC_milchgeld.edi', check: 'found', steps: 5, by: '–', at: '–' },
+  { test: 'TGTM2-18', summary: 'Rechnung mit Zuschlag Transport', status: 'PASS', file: 'INVOIC_zuschlag.edi', check: 'found', steps: 4, by: 'H. Lill', at: '19.11.2026 15:20' },
+];
+const stepsFor = (r) => [
+  { action: 'EDI-Testdatei bereitstellen', data: r.file ? SP + r.file : '(kein Link hinterlegt)', result: 'Datei liegt auf SharePoint', status: r.check === 'found' ? 'PASS' : (r.status === 'TODO' ? 'TODO' : 'FAIL') },
+  { action: 'Datei an Testausführung übergeben', data: 'Referenz TC-TGTM2-6-' + r.test.split('-')[1], result: 'Übergabe quittiert', status: ['PASS','FAIL','EXECUTING'].includes(r.status) ? 'PASS' : 'TODO' },
+  { action: 'IDoc in SAP prüfen (WE02)', data: 'Nachrichtentyp INVOIC', result: 'IDoc-Status 53', status: r.status === 'FAIL' ? 'FAIL' : r.status === 'EXECUTING' ? 'EXECUTING' : r.status === 'PASS' ? 'PASS' : 'TODO' },
+  { action: 'Abrechnungsbeleg prüfen', data: '', result: 'Beleg mit korrekten Beträgen angelegt', status: r.status === 'PASS' ? 'PASS' : 'TODO' },
+].slice(0, Math.max(4, Math.min(r.steps, 4)));
+
+/* ---------------- Hilfsfunktionen ---------------- */
+const $ = (s) => document.querySelector(s);
+const badge = (s) => `<span class="badge b-${s}">${s}</span>`;
+const dateiCheck = (c) => ({
+  'found': '<span class="datei d-found">✅ gefunden</span>',
+  'not-found': '<span class="datei d-not-found">❌ nicht gefunden</span>',
+  'missing-link': '<span class="datei d-missing-link">⚠️ kein Link</span>',
+}[c]);
+const farbe = { PASS: 'var(--pass)', FAIL: 'var(--fail)', EXECUTING: 'var(--exec)', TODO: 'var(--blau-mittel)' };
+function zaehle() {
+  const c = { PASS: 0, FAIL: 0, EXECUTING: 0, TODO: 0 };
+  runs.forEach(r => c[r.status]++);
+  return c;
+}
+
+/* ---------------- Seiten ---------------- */
+function seiteStart() {
+  const zeilen = [
+    ...Object.entries(executions).map(([k, e]) => ({ typ: 'Test Execution', key: k, summary: e.summary, fix: e.fixVersion, upd: e.updated, href: '#/executions/' + k })),
+    ...plans.map(p => ({ typ: 'Test Plan', key: p.key, summary: p.summary, fix: p.fixVersion, upd: '17.11.2026', href: '#/plans/' + p.key })),
+  ];
+  return `
+  <div class="brot">Start</div>
+  <div class="karte">
+    <h1>Was möchtest du prüfen?</h1>
+    <p class="leise" style="margin:0 0 14px">Key oder Jira-Link einfügen – oder unten aus der Liste wählen.</p>
+    <div class="zeile">
+      <input id="suche" style="flex:1;min-width:240px" placeholder="z. B. TGTM2-6 oder https://….atlassian.net/browse/TGTM2-6">
+      <select><option>Alle Projekte</option><option>TGTM2</option></select>
+      <select><option>Alle Fix Versions</option><option>2026.12</option></select>
+      <button class="btn" onclick="oeffne()">Öffnen</button>
+    </div>
+  </div>
+  <div class="zwei">
+    <div class="karte" style="grid-column: span 2">
+      <h2>Test Executions &amp; Test Plans</h2>
+      <table>
+        <thead><tr><th>Typ</th><th>Key</th><th>Titel</th><th>Fix Version</th><th>Geändert</th></tr></thead>
+        <tbody>${zeilen.map(z => `
+          <tr class="klick" onclick="location.hash='${z.href}'">
+            <td><span class="badge ${z.typ === 'Test Plan' ? 'b-EXECUTING' : 'b-TODO'}">${z.typ}</span></td>
+            <td class="mono"><a href="${z.href}">${z.key}</a></td><td>${z.summary}</td><td>${z.fix}</td><td class="leise">${z.upd}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="karte">
+    <h2>Zuletzt geöffnet</h2>
+    <div class="chips"><a class="chip" href="#/executions/TGTM2-6">TGTM2-6 · INVOIC Sprint 47</a><a class="chip" href="#/plans/TGTM2-1">TGTM2-1 · Release 2026.12</a></div>
+  </div>`;
+}
+
+function seitePlan(key) {
+  const p = plans.find(x => x.key === key) || plans[0];
+  return `
+  <div class="brot"><a href="#/">Start</a> › Test Plan ${p.key}</div>
+  <div class="karte">
+    <span class="badge b-EXECUTING">Test Plan</span>
+    <h1 style="margin-top:8px">${p.key} · ${p.summary}</h1>
+    <div class="meta"><div><b>Fix Version</b>${p.fixVersion}</div><div><b>Test Executions</b>${p.executions.length}</div><div><b>Jira</b><a href="#">In Jira öffnen ↗</a></div></div>
+  </div>
+  <div class="karte">
+    <h2>Zugehörige Test Executions</h2>
+    <table><thead><tr><th>Key</th><th>Titel</th><th>Status</th><th>Testumgebung</th><th>Geändert</th></tr></thead>
+    <tbody>${p.executions.map(k => { const e = executions[k]; return `
+      <tr class="klick" onclick="location.hash='#/executions/${k}'"><td class="mono"><a href="#/executions/${k}">${k}</a></td><td>${e.summary}</td><td>${e.status}</td><td>${e.env}</td><td class="leise">${e.updated}</td></tr>`; }).join('')}
+    </tbody></table>
+  </div>`;
+}
+
+let filter = 'ALLE';
+function seiteExecution(key) {
+  const e = executions[key] || executions['TGTM2-6'];
+  const c = zaehle(), n = runs.length;
+  const fehlend = runs.filter(r => r.check !== 'found').length;
+  const liste = runs.filter(r => filter === 'ALLE' || r.status === filter || (filter === 'DATEI' && r.check !== 'found'));
+  return `
+  <div class="brot"><a href="#/">Start</a> › <a href="#/plans/${e.plan}">${e.plan}</a> › Test Execution ${key}</div>
+  <div class="karte">
+    <div class="kopf">
+      <div>
+        <span class="badge b-TODO">Test Execution</span>
+        <h1 style="margin-top:8px">${key} · ${e.summary}</h1>
+      </div>
+      <div class="zeile"><a class="btn zweit" href="#">In Jira öffnen ↗</a><button class="btn" disabled title="Ab Phase 2">Übergeben</button></div>
+    </div>
+    <div class="meta">
+      <div><b>Status</b>${e.status}</div><div><b>Test Plan</b><a href="#/plans/${e.plan}">${e.plan}</a></div>
+      <div><b>Fix Version</b>${e.fixVersion}</div><div><b>Testumgebung</b>${e.env}</div>
+    </div>
+    <div class="balken">${['PASS','FAIL','EXECUTING','TODO'].map(s => `<span style="width:${c[s]/n*100}%;background:${farbe[s]}"></span>`).join('')}</div>
+    <div class="legende">${['PASS','FAIL','EXECUTING','TODO'].map(s => `<span><i style="background:${farbe[s]}"></i>${s} ${c[s]}</span>`).join('')}</div>
+    <div class="kacheln">
+      <div class="kachel"><div class="zahl">${n}</div>Tests gesamt</div>
+      <div class="kachel gruen"><div class="zahl">${Math.round(c.PASS/n*100)} %</div>bestanden</div>
+      <div class="kachel rot"><div class="zahl">${c.FAIL}</div>fehlgeschlagen</div>
+      <div class="kachel gelb"><div class="zahl">${fehlend}</div>Datei-Probleme</div>
+    </div>
+  </div>
+
+  <div class="karte">
+    <div class="kopf" style="margin-bottom:12px">
+      <h2 style="margin:0">Test Runs</h2>
+      <div class="chips">
+        ${[['ALLE','Alle'],['PASS','PASS'],['FAIL','FAIL'],['EXECUTING','EXECUTING'],['TODO','TODO'],['DATEI','Datei-Probleme']].map(([k,l]) =>
+          `<span class="chip ${filter===k?'an':''}" onclick="filter='${k}';render()">${l}</span>`).join('')}
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Test</th><th>Titel</th><th>Status</th><th>Datei (Schritt 1)</th><th>SharePoint</th><th>Schritte</th><th>Zuletzt ausgeführt</th></tr></thead>
+      <tbody>${liste.map(r => `
+        <tr class="klick" onclick="location.hash='#/executions/${key}/tests/${r.test}'">
+          <td class="mono"><a href="#/executions/${key}/tests/${r.test}">${r.test}</a></td>
+          <td>${r.summary}</td><td>${badge(r.status)}</td>
+          <td class="mono">${r.file ? `<a href="#" onclick="event.stopPropagation()">${r.file}</a>` : '<span class="leise">–</span>'}</td>
+          <td>${dateiCheck(r.check)}</td><td>${r.steps}</td>
+          <td class="leise">${r.by}<br><small>${r.at}</small></td>
+        </tr>`).join('') || '<tr><td colspan="7" class="leise">Keine Tests für diesen Filter.</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function seiteTest(key, testKey) {
+  const r = runs.find(x => x.test === testKey) || runs[0];
+  return `
+  <div class="brot"><a href="#/">Start</a> › <a href="#/executions/${key}">${key}</a> › ${r.test}</div>
+  <div class="karte">
+    <div class="kopf">
+      <div><span class="badge b-TODO">Test</span> ${badge(r.status)}
+        <h1 style="margin-top:8px">${r.test} · ${r.summary}</h1></div>
+      <a class="btn zweit" href="#">In Jira öffnen ↗</a>
+    </div>
+    <div class="meta">
+      <div><b>Test Execution</b><a href="#/executions/${key}">${key}</a></div>
+      <div><b>Zuletzt ausgeführt</b>${r.by} · ${r.at}</div>
+      <div><b>Datei-Link (Schritt 1, Test Run)</b>${r.file ? `<a href="#" class="mono">${r.file}</a>` : '<span class="leise">kein Link</span>'}</div>
+      <div><b>SharePoint-Prüfung</b>${dateiCheck(r.check)}</div>
+    </div>
+  </div>
+  ${r.check === 'missing-link' ? '<div class="hinweis warn">⚠️ In Schritt 1 ist kein Datei-Link hinterlegt. Bitte den Test in Xray ergänzen.</div>' : ''}
+  ${r.check === 'not-found' ? '<div class="hinweis warn">❌ Unter dem hinterlegten Link wurde auf SharePoint keine Datei gefunden.</div>' : ''}
+  <div class="karte">
+    <h2>Testschritte</h2>
+    <table><thead><tr><th>#</th><th>Action</th><th>Data</th><th>Expected Result</th><th>Status</th></tr></thead>
+    <tbody>${stepsFor(r).map((s, i) => `
+      <tr><td>${i+1}</td><td>${s.action}</td><td class="mono" style="word-break:break-all">${s.data || '<span class="leise">–</span>'}</td><td>${s.result}</td><td>${badge(s.status)}</td></tr>`).join('')}
+    </tbody></table>
+  </div>
+  <div class="hinweis">ℹ️ Phase 2/3: Hier erscheinen später Dateivorschau mit markierter Referenznummer, Übergabe-Verlauf sowie IDoc-Nummer, IDoc-Status und Abrechnungsbeleg aus SAP.</div>`;
+}
+
+function seiteEinstellungen() {
+  return `
+  <div class="brot">Einstellungen</div>
+  <div class="karte">
+    <h1>Zugänge</h1>
+    <p class="leise" style="margin:0 0 16px">Deine Zugangsdaten werden nur im Backend gespeichert und nie wieder vollständig angezeigt.</p>
+    <h2>Jira Cloud</h2>
+    <div class="formgrid">
+      <label>E-Mail-Adresse</label><input value="j.braun@beispiel.de">
+      <label>API-Token</label><input type="password" value="xxxxxxxxxxxxxxxx">
+      <span></span><div class="zeile"><button class="btn">Prüfen &amp; speichern</button><button class="btn zweit">Löschen</button></div>
+      <span></span><div><span class="ok">✔ Angemeldet als Jakob Braun</span> <span class="leise">· Token gültig bis 15.03.2027</span></div>
+    </div>
+  </div>
+  <div class="karte">
+    <h2>Xray Cloud</h2>
+    <div class="formgrid">
+      <label>Client ID</label><input value="A1B2C3D4E5F6••••••••">
+      <label>Client Secret</label><input type="password" value="xxxxxxxxxxxxxxxx">
+      <span></span><div class="zeile"><button class="btn">Prüfen &amp; speichern</button><button class="btn zweit">Löschen</button></div>
+      <span></span><div><span class="ok">✔ Xray-Zugriff funktioniert</span></div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- Routing ---------------- */
+function oeffne() {
+  const v = ($('#suche').value || '').trim();
+  const m = v.match(/([A-Z][A-Z0-9]+-\d+)/i);
+  if (!m) return;
+  const k = m[1].toUpperCase();
+  location.hash = plans.some(p => p.key === k) ? '#/plans/' + k : '#/executions/' + k;
+}
+function render() {
+  const h = location.hash.replace(/^#/, '') || '/';
+  let m, html, nav = 'start';
+  if ((m = h.match(/^\/executions\/([^/]+)\/tests\/([^/]+)/))) { html = seiteTest(m[1], m[2]); nav = 'exec'; }
+  else if ((m = h.match(/^\/executions\/([^/]+)/))) { html = seiteExecution(m[1]); nav = 'exec'; }
+  else if ((m = h.match(/^\/plans\/([^/]+)/))) { html = seitePlan(m[1]); nav = 'plan'; }
+  else if (h.startsWith('/einstellungen')) { html = seiteEinstellungen(); nav = 'einst'; }
+  else html = seiteStart();
+  $('#app').innerHTML = html;
+  document.querySelectorAll('nav.haupt a').forEach(a => a.classList.toggle('aktiv', a.dataset.nav === nav));
+}
+window.addEventListener('hashchange', () => { filter = 'ALLE'; render(); window.scrollTo(0, 0); });
+render();
+</script>
+</body>
+</html>
