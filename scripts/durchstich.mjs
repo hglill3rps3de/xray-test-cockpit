@@ -5,7 +5,8 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 
-const XRAY = 'https://xray.cloud.getxray.app/api/v2';
+// Regionaler Endpunkt, z.B. https://eu.xray.cloud.getxray.app (sonst "Xray data is in another region").
+const XRAY = (process.env.XRAY_BASE_URL || 'https://xray.cloud.getxray.app').replace(/\/$/, '') + '/api/v2';
 const env = (name) => {
   const v = process.env[name];
   if (!v) {
@@ -57,7 +58,7 @@ const RUN_FIELDS = `
     results {
       id
       status { name }
-      test { issueId jira(fields: ["key", "summary"]) }
+      test { issueId jira(fields: ["key", "summary"]) steps { id callTestIssueId } }
       steps { id action data result status { name } attachments { id filename } }
     }
   }`;
@@ -104,16 +105,29 @@ if (/plan/i.test(type)) {
   const te = data.getTestExecutions.results[0];
   if (!te) throw new Error('Xray kennt diesen Vorgang nicht als Test Execution.');
   console.log(`\nTest Execution: ${te.testRuns.total} Test Runs`);
+  // Aufgerufene Tests ("Call Test"-Schritte): Xray löst sie im Test Run bereits in deren Schritte auf.
+  // Die Run-Schritt-ID ist dann "<ID des Aufrufschritts>_<ID des Originalschritts>".
+  const calledKeys = new Map(); // issueId -> "KEY Summary"
+  for (const run of te.testRuns.results)
+    for (const s of run.test.steps ?? [])
+      if (s.callTestIssueId && !calledKeys.has(s.callTestIssueId)) {
+        const called = await jira(`/rest/api/3/issue/${s.callTestIssueId}?fields=summary`);
+        calledKeys.set(s.callTestIssueId, `${called.key} ${short(called.fields.summary, 60)}`);
+      }
+
   for (const run of te.testRuns.results) {
-    const s1 = run.steps?.[0];
+    const callOf = new Map((run.test.steps ?? []).filter((s) => s.callTestIssueId).map((s) => [s.id, s.callTestIssueId]));
     console.log(`\n  ${run.test.jira.key}  [${run.status.name}]  ${short(run.test.jira.summary)}`);
     console.log(`    Schritte: ${run.steps?.length ?? 0}`);
-    if (s1) {
-      console.log(`    Schritt 1 Action: ${short(s1.action)}`);
-      console.log(`    Schritt 1 Data:   ${short(s1.data)}`);
-      console.log(`    Schritt 1 Result: ${short(s1.result)}`);
-      if (s1.attachments?.length) console.log(`    Schritt 1 Anhänge: ${s1.attachments.map((a) => a.filename).join(', ')}`);
-    }
+    (run.steps ?? []).forEach((s, i) => {
+      const calledId = callOf.get(s.id.split('_')[0]);
+      const via = s.id.includes('_') && calledId ? `  (aufgerufen aus ${calledKeys.get(calledId)})` : '';
+      console.log(`    Schritt ${i + 1} [${s.status?.name}]${via}`);
+      console.log(`      Action: ${short(s.action)}`);
+      console.log(`      Data:   ${short(s.data)}`);
+      console.log(`      Result: ${short(s.result)}`);
+      if (s.attachments?.length) console.log(`      Anhänge: ${s.attachments.map((a) => a.filename).join(', ')}`);
+    });
   }
 }
 
